@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+python-multipart
+numpy
+pillow
+torch
+langchain-community
+langchain-core
+langchain-classic
+langchain-groq
+langchain-huggingface
+langchain-text-splitters
+sentence-transformers
+faiss-cpu
+pypdf
