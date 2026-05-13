@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_BASE_URL = process.env.BACKEND_API_BASE_URL;
+const BACKEND_BASE_URL =
+  process.env.BACKEND_API_BASE_URL ?? process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
 
 function buildTargetUrl(pathSegments: string[], search: string): string {
   if (!BACKEND_BASE_URL) {
-    throw new Error('Missing BACKEND_API_BASE_URL environment variable');
+    throw new Error(
+      'Missing backend base URL. Set BACKEND_API_BASE_URL or NEXT_PUBLIC_BACKEND_API_BASE_URL in the frontend deployment environment.'
+    );
   }
 
   const base = BACKEND_BASE_URL.replace(/\/+$/, '');
