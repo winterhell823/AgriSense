@@ -306,7 +306,7 @@ export function AnimatedAIChat() {
     }, [selectedImagePreview]);
 
     const handleSendMessage = () => {
-        const message = value.trim();
+        const message = (textareaRef.current?.value ?? value).trim();
         if (!message && !selectedImage) {
             return;
         }
@@ -335,7 +335,7 @@ export function AnimatedAIChat() {
                     const formData = new FormData();
                     formData.append('file', selectedImage);
 
-                    const response = await fetch('http://localhost:8000/analyze-image', {
+                    const response = await fetch('/api/backend/analyze-image', {
                         method: 'POST',
                         body: formData,
                     });
@@ -361,7 +361,7 @@ export function AnimatedAIChat() {
                 }
 
                 // Call backend RAG endpoint for text chat
-                const response = await fetch('http://localhost:8000/chat', {
+                const response = await fetch('/api/backend/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -445,9 +445,7 @@ export function AnimatedAIChat() {
             }
         } else if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            if (value.trim() || selectedImage) {
-                handleSendMessage();
-            }
+            handleSendMessage();
         }
     };
 
@@ -711,23 +709,33 @@ export function AnimatedAIChat() {
                         )}
                     </AnimatePresence>
 
-                    {/* Textarea */}
-                    <div className="p-4">
-                        <Textarea
-                            ref={textareaRef}
-                            value={value}
-                            onChange={(e) => {
-                                setValue(e.target.value);
-                                adjustHeight();
-                            }}
-                            onKeyDown={handleKeyDown}
-                            onFocus={() => setInputFocused(true)}
-                            onBlur={() => setInputFocused(false)}
-                            placeholder={selectedImage ? "Add an optional note, then send the image..." : "Type your farming question... (Use / for commands)"}
-                            className="bg-farm-500/5 border border-farm-500/20 text-white placeholder:text-white/30 resize-none focus:bg-farm-500/10 focus:border-farm-500/40"
-                            disabled={isTyping}
-                        />
-                    </div>
+                    <form
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            handleSendMessage();
+                        }}
+                    >
+                        {/* Textarea */}
+                        <div className="p-4">
+                            <Textarea
+                                ref={textareaRef}
+                                value={value}
+                                onChange={(e) => {
+                                    setValue(e.target.value);
+                                    adjustHeight();
+                                }}
+                                onInput={(e) => {
+                                    setValue(e.currentTarget.value);
+                                    adjustHeight();
+                                }}
+                                onKeyDown={handleKeyDown}
+                                onFocus={() => setInputFocused(true)}
+                                onBlur={() => setInputFocused(false)}
+                                placeholder={selectedImage ? "Add an optional note, then send the image..." : "Type your farming question... (Use / for commands)"}
+                                className="bg-farm-500/5 border border-farm-500/20 text-white placeholder:text-white/30 resize-none focus:bg-farm-500/10 focus:border-farm-500/40"
+                                disabled={isTyping}
+                            />
+                        </div>
 
                     {/* Command Palette */}
                     {showCommandPalette && (
@@ -794,17 +802,17 @@ export function AnimatedAIChat() {
                         </div>
                         
                         <motion.button
-                            type="button"
+                            type="submit"
                             onClick={handleSendMessage}
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
-                            disabled={isTyping || (!value.trim() && !selectedImage)}
+                            disabled={isTyping}
                             className={cn(
                                 "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                                 "flex items-center gap-2",
-                                (value.trim() || selectedImage)
-                                    ? "bg-farm-500 text-white shadow-lg shadow-farm-500/20 hover:bg-farm-600"
-                                    : "bg-farm-500/10 text-white/40"
+                                isTyping
+                                    ? "bg-farm-500/10 text-white/40"
+                                    : "bg-farm-500 text-white shadow-lg shadow-farm-500/20 hover:bg-farm-600"
                             )}
                         >
                             {isTyping ? (
@@ -815,6 +823,7 @@ export function AnimatedAIChat() {
                             <span>{selectedImage ? 'Analyze' : 'Send'}</span>
                         </motion.button>
                     </div>
+                    </form>
                 </motion.div>
             </div>
 
