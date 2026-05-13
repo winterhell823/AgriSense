@@ -109,6 +109,22 @@ interface ImageAnalysisResponse {
     organic_solution: string[];
 }
 
+async function readErrorMessage(response: Response): Promise<string> {
+    try {
+        const data = await response.json();
+        if (typeof data?.detail === 'string' && data.detail.trim()) {
+            return data.detail;
+        }
+        if (typeof data?.error === 'string' && data.error.trim()) {
+            return data.error;
+        }
+    } catch {
+        // Ignore JSON parsing errors and fallback to status text.
+    }
+
+    return response.statusText || `Request failed with status ${response.status}`;
+}
+
 const commandSuggestions: CommandSuggestion[] = [
     {
         icon: <ImageIcon className="w-4 h-4" />,
@@ -341,7 +357,8 @@ export function AnimatedAIChat() {
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+                        const detail = await readErrorMessage(response);
+                        throw new Error(`Backend error: ${response.status} ${detail}`);
                     }
 
                     const data: ImageAnalysisResponse = await response.json();
@@ -373,7 +390,8 @@ export function AnimatedAIChat() {
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+                    const detail = await readErrorMessage(response);
+                    throw new Error(`Backend error: ${response.status} ${detail}`);
                 }
 
                 const data: ChatResponse = await response.json();
